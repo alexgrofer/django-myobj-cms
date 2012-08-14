@@ -1,0 +1,92 @@
+﻿{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+<script type="text/javascript" src="/static/admin/js/jquery.min.js"></script>
+<script>
+function mysystem() {
+	arrparem = (document.location.href.split('/')).slice(2);
+	
+	this.urlparam = {'domain': arrparem[0], 'myadm': arrparem[1]+'/'+arrparem[2], 'class': arrparem[3], 'paramslist': arrparem.slice(4)}
+}
+mysystem = new mysystem();
+
+</script>
+{% endblock %}
+
+{% block title %}
+{{ namecont }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<style>
+.float_non {float:none !important;}
+#content {padding:0;margin:0}
+.main_menu {}
+.main_menu li {display:block; float:left; position:relative;background: #D4D0C8;border: 1px solid #FCE7B0;  padding: 2px 0}
+.main_menu li a {padding: 4px}
+.main_menu .over {background: #D96201 !important}
+.main_menu ul {padding:0;margin:0}
+.main_menu li p {padding:0;margin:0}
+.main_menu li ul {display:block; position:absolute; top:0; z-index:2;}
+.main_menu li ul li {float:none; white-space: nowrap; }
+.main_menu .classaddlinkm {background:#FE6602 !important}
+.main_menu .filtclassobj {background:#C60000 !important}
+.main_menu .classlinkm {background:#7FA0B0 !important;}
+.botthr {border:1px solid #417690; background: #FCE7B0}
+.dispnone {display:none !important}
+.mycontent table {width:100%;border-collapse:collapse}
+.mycontent table td,table th {vertical-align:top}
+.mycontent a img {border:0}
+.mycontent ol,ul{list-style:none}
+.mycontent a {text-decoration:none;color:#000}
+.mycontent .headtop {padding:1px; text-align:center;padding-bottom:10px;background:#FCEAB9}
+.clear-bothblock {clear:both !important;width:1px;height:1px}
+.altlink {border-bottom:1px dotted #0000CC; cursor:pointer}
+</style>
+
+{% autoescape off %}
+<div class="main_menu">
+	{{ topmenu }}
+</div>
+{% endautoescape %}
+
+<div class="float_non botthr">&nbsp;</div><div>&nbsp;</div>
+
+<script>
+function ui_menu(str_parent_elem,istop) {
+$(str_parent_elem+' li p').each(function() {
+	elem_ul = $(this).next('ul:first');
+	
+	if(istop && $(this).parent().parent().parent().is(str_parent_elem)) 
+		elem_ul.css({'top': $(this).parent().innerHeight()+'px'});
+	else
+		elem_ul.css({'left': $(this).parent().innerWidth()+'px'});
+	
+	
+	$(this).parent().hover(function(event) {
+		$(this).children('ul:first').toggle();
+		
+	});
+});
+$(str_parent_elem+' li ul').css('display','none');
+$(str_parent_elem+' li a').live('mouseout mouseover',
+function(e) { 
+	if(e.type == 'mouseover') {
+		$(this).parent().addClass('over');
+	}
+	else if(e.type == 'mouseout') {
+		$(this).parent().removeClass('over');
+	}
+    $(this).click(function() {
+        if($(this).attr('href') == '') {
+            return false;
+        }
+    });
+}
+);
+}
+ui_menu('.main_menu',true);
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,16 @@
+﻿{% extends "myadmin/mybase.html" %}
+
+{% block content %}
+
+
+
+<div class="mycontent">
+
+<div class="headtop">{{head}}</div>
+{% autoescape off %}
+{{ myhtml }}
+{% endautoescape %}
+</div>
+
+
+{% endblock %}

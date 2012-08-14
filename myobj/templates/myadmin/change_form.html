@@ -1,0 +1,119 @@
+﻿{% extends "myadmin/mybase.html" %}
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="/static/admin/js/core.js"></script>
+
+<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+<script type="text/javascript" src="/static/admin/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+<script type="text/javascript" src="/static/admin/js/actions.min.js"></script>
+<script type="text/javascript" src="/static/admin/js/calendar.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+
+<script type="text/javascript" src="/static/myadmin/jhtmlarea/scripts/jHtmlArea-0.7.0.min.js"></script>
+<link rel="Stylesheet" type="text/css" href="/static/myadmin/jhtmlarea/style/jHtmlArea.css" />
+
+{% endblock %}
+
+{% block content %}
+<style>
+.mycontent .myform {}
+.vishidden {visibility: hidden}
+</style>
+
+{% autoescape off %}
+<div class="mycontent">
+
+<div class="headtop">{{header}}</div>
+<div class="myform">
+
+
+
+{% if myhtml.excepterr %}
+<ul class="errorlist">
+<li>{{myhtml.excepterr}}</li>
+</ul>
+{% endif %}
+
+
+
+<form enctype="multipart/form-data" name="moref" method="post">{% csrf_token %}
+<table>
+{{myhtml.as_table}}
+</table>
+
+<input type="submit" name="onsubmit" value="send">
+</form>
+{% if myhtml.typesprops %}
+<script>
+var defhtninit = {
+    toolbar: [
+        ["html"],[ "bold", "italic", "underline", "strikethrough"],
+        ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+        ["link", "unlink", "|", "image", "|", "justifyLeft","justifyCenter","justifyRight", "|", "horizontalrule"]
+    ]
+}
+var arriselemfiles = { {% for key, value in myhtml.typesprops.items %}{% if value = 'files' %}'{{ key }}': '{{value}}',{% endif %}{% endfor %} };
+for(var namekey in arriselemfiles) {
+    $('#id_'+namekey).parent().append(' <a href="' +'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/' + mysystem.urlparam['paramslist'][0] + '/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/myobj.models__systemuploadsfiles/'+ namekey + '">ids model ' + arriselemfiles[namekey] + '</a>');
+}
+
+{% for key, value in myhtml.typesprops.items %}
+{% if value == "html" %}
+    $(function() {$('#id_{{ key }}').htmlarea(defhtninit)});
+    $('#id_{{ key }}').attr('cols','100');$('#id_{{ key }}').attr('rows','20');
+{% endif %}
+
+{% if value == "date" %}
+    $('#id_{{ key }}').attr('class','vDateField');
+{% endif %}
+
+{% if value == "time" %}
+    $('#id_{{ key }}').attr('class','vTimeField');
+{% endif %}
+
+{% endfor %}
+</script>
+{% endif %}
+</div>  
+
+<script>
+
+
+
+formobj = new Object();
+formobj.arrmaxminfield = [{{ myfields.minmax|join:"," }}]
+if($('#id_myfield').is('select')) {
+	if(jQuery.inArray(parseInt($('#id_myfield').attr('value')), formobj.arrmaxminfield)=='-1') {
+		$('#id_maxfield, #id_minfield').parent().parent().hide();
+	}
+	$('#id_myfield').change(function() {
+		if(jQuery.inArray(parseInt(this.value), formobj.arrmaxminfield)!='-1') {
+			$('#id_maxfield, #id_minfield').parent().parent().show();
+		}
+		else $('#id_maxfield, #id_minfield').parent().parent().hide();
+	});
+}
+var dictparammodel = {
+{% for key, value in myhtml.mtomfk.items %}
+    '{{key}}': '{{value}}',
+{% endfor %}
+}
+$(document.forms['moref']).find('input[name$="__prev_"]').each(function() {
+    nameelem = $(this).attr('name').substr(0,$(this).attr('name').indexOf('__prev_'));
+    sep = (mysystem.urlparam['paramslist'][0] == 'class')?'__':'___';
+    arrelemmenlink = dictparammodel[nameelem].split(sep);
+    $('#id_'+nameelem).parent().append(' <a href="'+'/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/' + mysystem.urlparam['paramslist'][0] + '/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/linksmodel/'+arrelemmenlink[0]+'/'+arrelemmenlink[1]+'">links</a>');
+});
+
+</script>
+
+
+
+
+</div>
+{% endautoescape %}
+
+{% endblock %}

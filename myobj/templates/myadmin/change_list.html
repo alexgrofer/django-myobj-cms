@@ -1,0 +1,304 @@
+﻿{% extends "myadmin/mybase.html" %}
+
+{% block content %}
+<style>
+
+.mycontent .tablelist #menelem {position:absolute;}
+.mycontent .tablelist .uimen li {float:none !important; border: 1px solid #E8E8FF; border-bottom:none;padding:2px 0}
+.mycontent .tablelist .uimen li a {padding: 4px}
+.mycontent .tablelist .uimen .over {background: #F2F4FF !important}
+
+.mycontent .headtop {padding:1px; text-align:center;padding-bottom:10px;background:#FCEAB9}
+.mycontent .tablelist .head td {background:#D4D0C8; border:1px solid #417690}
+.mycontent .tablelist .click td {background:#94CE8C !important}
+.mycontent .tablelist .mouse td {background:#F2F4FF}
+.mycontent .tablelist .classlinks td {background: #7FA0B0}
+.mycontent .tablelist td {border:1px solid #D4D0C8;background:#FCEAB9;}
+.mycontent .tablelist #allcheck {width:1%}
+.mycontent .tablelist #block_datafile, .mycontent .tablelist #id_submitaction {display:none}
+
+.pagination a {font-size: 120%; border-bottom: 1px solid #000; margin-right: 10px}
+.pagination .actionp {cursor:default; border-bottom: none}
+
+.mycontent .topoption {background:#FCEAB9; border-top: 1px solid #D4D0C8; padding: 2px}
+.mycontent .topoption #selectobj-sel, .mycontent .topoption #sotrtypeobj-sort, .mycontent .topoption #sotrtypeobj-sort2, .mycontent .topoption #search-opt,.mycontent .topoption #sotrtypeobj-searchc {float:right;position:relative;padding-right: 10px}
+.mycontent .topoption #sotrtypeobj-sort2 {display:none}
+.mycontent .topoption #sotrtypeobj-sort select {vertical-align:middle}
+.mycontent .topoption #sotrtypeobj-sort b {padding-right: 4px}
+.mycontent .topoption #selectobj-sel #selobjectsblock-sel {width:300%;background:#fff;position:absolute;top:20px;right:0;padding:4px;display:none}
+
+</style>
+{% autoescape off %}
+<div class="mycontent">
+
+<div class="headtop">{{header}}</div>
+
+<div class="tablelist">
+
+
+<form name="actnameurl" enctype="multipart/form-data" action="/{{ urls.myadm }}/{{ urls.class }}/action" method="POST" >{% csrf_token %}
+{{ myhtml.formlist.as_p }}
+<span id="block_datafile"><label for="id_datafile">select the file:</label> <input type="file" name="datafile" id="id_datafile" /></span>
+<input type="submit" name="submitaction" id="id_submitaction" value="ok" />
+</form>
+
+{{ myhtml.table }}
+
+<div id="menelem" class="main_menu">
+
+
+<div class="uimen">
+    {{ uimenu }}
+</div>
+    
+</div>
+
+<script>
+ui_menu('.uimen',false);
+</script>
+
+
+</div>
+
+{% endautoescape %}
+<script>
+var listchangespace = new Object();
+listchangespace.elmen = $('#menelem:first');
+listchangespace.formactparam = document.forms['actnameurl'];
+
+listchangespace.elmen.tablescolect = $('.tablelist tr:gt(0)');
+listchangespace.elmen.objectsidarr = [];
+listchangespace.elmen.objectsidarrno = [];
+
+
+if($('div').is('#selectobj-sel')) {
+    $('#buttonviewobj-sel').click(function() { $('#selobjectsblock-sel').toggle() });
+}
+
+if($('select').is('#select-filter-sort')) {
+    $('#select-filter-sort, #select-filter-sort2').change(function() { 
+        listchangespace.formactparam.order.value=$($('#select-filter-sort')).val();
+        listchangespace.formactparam.order2.value=$($('#select-filter-sort2')).val();
+        listchangespace.formactparam.searchcolumn.value=$($('#searchncol')).val();
+        $(listchangespace.formactparam).attr('action', document.location);
+        listchangespace.formactparam.submit();
+    });
+    if(listchangespace.formactparam.order2.value != '') {
+        $('#sotrtypeobj-sort2').show();
+    }
+    $('#actsort2').click(function() { $('#sotrtypeobj-sort2').toggle() });
+    $('#psevdfopt').submit(function() { 
+        listchangespace.formactparam.searchstrv.value=this.searchstr.value;
+        listchangespace.formactparam.searchcolumn.value=$($('#searchncol')).val();
+        $(listchangespace.formactparam).attr('action', document.location);
+        listchangespace.formactparam.submit();
+        return false;
+    });
+    
+}
+
+$('#allcheck input').click(function() {
+    elemall = this;
+    listchangespace.formactparam.objects.value = '';
+    if($(elemall).attr('checked') == true) {listchangespace.formactparam.exclude.value='1';listchangespace.elmen.objectsidarr = [];}
+    else {
+        listchangespace.formactparam.exclude.value='';
+        listchangespace.elmen.objectsidarr = [];
+    }
+    $.each(listchangespace.elmen.tablescolect, function() {
+        currentelem = $(this).find('input:first');
+        $(this).toggleClass('click');
+        listchangespace.elmen.objectsidarr.push(currentelem.attr('name').split('_')[1]);
+        currentelem.attr('checked',$(elemall).attr('checked')?true:false);
+    });
+}
+);
+
+$.each(listchangespace.elmen.tablescolect, function() {
+    idobj = (($(this).find('input:first').attr('name')).split('_'))[1];
+    if(($(this).find('input:first').attr('checked')==true && listchangespace.formactparam.exclude.value == '') || ($(this).find('input:first').attr('checked')==false && listchangespace.formactparam.exclude.value == '1')) {
+        listchangespace.elmen.objectsidarr.push(idobj);
+    }
+    $(this).click(function(){return false});
+}
+);
+
+if(listchangespace.formactparam.objects.value.split(',').length != 0) {
+    listobjcts = listchangespace.formactparam.objects.value.split(',');
+    for(var i = 0; i < listobjcts.length; i++) {
+        searchelem = jQuery.inArray(listobjcts[i], listchangespace.elmen.objectsidarr);
+        if(searchelem=='-1' && listobjcts[i]!='') {
+            listchangespace.elmen.objectsidarr.push(listobjcts[i]);
+        }
+    }
+}
+
+if(listchangespace.formactparam.objectsno.value) {
+    listchangespace.elmen.objectsidarrno = listchangespace.formactparam.objectsno.value.split(',');
+}
+
+listchangespace.elmen.tablescolect.live('dblclick mousedown mouseout mouseover',
+    function(e) {
+
+        e.stopPropagation();
+        idobj = (($(this).find('input:first').attr('name')).split('_'))[1];
+        if(e.type == 'dblclick') {
+            if(mysystem.urlparam['paramslist'][0]=='class' && mysystem.urlparam['class']=='uobjects') {
+                location.href = '/'+mysystem.urlparam['myadm']+'/'+mysystem.urlparam['class']+'/class/'+mysystem.urlparam['paramslist'][1]+'/obj/'+idobj;
+            }
+            else if(mysystem.urlparam['class']=='uclasses' || mysystem.urlparam['class']=='objproperties') {
+                location.href = '/'+mysystem.urlparam['myadm']+'/'+mysystem.urlparam['class']+'/'+idobj;
+            }
+            else if(mysystem.urlparam['class']=='uobjects' && mysystem.urlparam['paramslist'][0]=='model') {
+                location.href = '/'+mysystem.urlparam['myadm']+'/'+mysystem.urlparam['class']+'/model/' + mysystem.urlparam['paramslist'][1] + '/obj/' +idobj;
+            }
+        }
+        else if(e.type == 'mousedown') {
+            xpos = ($(window).width() < (e.pageX + $(listchangespace.elmen).innerWidth()))? e.pageX - $(listchangespace.elmen).width() : e.pageX;
+            if(e.button==2 && !$('#addnewelementbutton').is('input')) {
+                $(listchangespace.elmen).css({'top': e.pageY +'px', 'left': xpos+'px', 'display': 'block'});
+                listchangespace.formactparam.idobj.value = idobj;
+            }
+            else if(e.button==0) {
+                $(listchangespace.elmen).hide();
+                vlcheck = $(this).find('input:first');
+                $(vlcheck).attr('checked', (($(vlcheck).attr('checked'))?false:true));
+                
+                $(this).toggleClass('click');
+                
+                searchelem = jQuery.inArray(idobj, listchangespace.elmen.objectsidarr);
+                searchelemno = jQuery.inArray(idobj, listchangespace.elmen.objectsidarrno);
+                
+                if($(vlcheck).attr('checked')==false && searchelemno == '-1') {
+                    listchangespace.elmen.objectsidarrno.push(idobj);
+                }
+                
+                if((($(vlcheck).attr('checked')==true) || ($(vlcheck).attr('checked')==false && listchangespace.formactparam.exclude.value == '1')) && searchelem=='-1') {
+                    listchangespace.elmen.objectsidarr.push(idobj);
+                    searchelemno = jQuery.inArray(idobj, listchangespace.elmen.objectsidarrno);
+                    if(searchelemno != '1-') {
+                        listchangespace.elmen.objectsidarrno.splice(searchelemno,1);
+                    }
+                }
+                if((($(vlcheck).attr('checked')==false) || ($(vlcheck).attr('checked')==true && listchangespace.formactparam.exclude.value == '1')) && searchelem!='-1') {
+                    listchangespace.elmen.objectsidarr.splice(searchelem,1);
+                }
+
+            }
+            $(this)[0].oncontextmenu = function() {return false}
+        }
+        else if(e.type == 'mouseout' || e.type == 'mouseover') {
+            
+            $(this).toggleClass('mouse');
+        }
+    }
+);
+$('#menelem').css({'display':'none'})
+$('#menelem').live('mouseout mouseover',
+    function(e) {
+        
+        if(!this.timer && e.type == 'mouseout') {
+            this.timer = setTimeout("$(listchangespace.elmen).css({'display':'none'})", 500); 
+        }
+        else if(e.type == 'mouseover') {
+            clearTimeout(this.timer);
+            this.timer = 0;
+        }
+        
+    }
+);
+
+
+$('#menelem a').live('click',
+    function(e) {
+        listchangespace.formactparam.nameurl.value = $(this).attr('href');
+        if(jQuery.trim(listchangespace.formactparam.nameurl.value) == '') {
+            return false;
+        }
+        listchangespace.formactparam.objects.value = listchangespace.elmen.objectsidarr.join(',');
+        listchangespace.formactparam.objectsno.value = listchangespace.elmen.objectsidarrno.join(',');
+
+        if(mysystem.urlparam['paramslist'][0]=='class' && mysystem.urlparam['class']=='uobjects') {
+            listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][1];
+            listchangespace.formactparam.params.value = 'isobjtrue';
+            if(mysystem.urlparam['paramslist'][4] == 'linksmodel') {
+                listchangespace.formactparam.model.value = mysystem.urlparam['paramslist'][5];
+                listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][6];
+                listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/class/'+ mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/';
+            }
+        }
+        //properties link
+        else if(mysystem.urlparam['paramslist'][0]=='linksobj') {
+            listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][2];
+        }
+        else if(mysystem.urlparam['paramslist'][0]=='link' && mysystem.urlparam['class']=='uclasses') {
+            if($(this).attr('href') == 'allclassfiltered') {
+                listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][3];
+                listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][1];
+            }
+        }
+        else if(mysystem.urlparam['paramslist'][0]=='linkall' && mysystem.urlparam['class']=='uobjects') {
+            listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][3];
+            listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][1];
+            listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][5];
+        }
+        else if(mysystem.urlparam['paramslist'][0]=='model') {
+            listchangespace.formactparam.model.value = mysystem.urlparam['paramslist'][1];
+            listchangespace.formactparam.idclass.value = mysystem.urlparam['paramslist'][4];
+            listchangespace.formactparam.idobjparentobj.value = mysystem.urlparam['paramslist'][6];
+            listchangespace.formactparam.nameprop.value = mysystem.urlparam['paramslist'][8];
+            if(mysystem.urlparam['paramslist'][4] == 'linksmodel') {
+                listchangespace.formactparam.params.value = mysystem.urlparam['paramslist'][5];
+                listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] +'/model/' + mysystem.urlparam['paramslist'][1] +'/obj/'+ mysystem.urlparam['paramslist'][3] +'/';
+            }
+            else {
+                if(mysystem.urlparam['paramslist'][2] != 'links' && mysystem.urlparam['paramslist'][2] != '') {
+                    listchangespace.formactparam.params.value = 'ismodellinklink';
+                    listchangespace.formactparam.idobj.value = mysystem.urlparam['paramslist'][3];
+                    listchangespace.formactparam.nameprop.value = mysystem.urlparam['paramslist'][6];
+                }
+                if(listchangespace.formactparam.nameurl.value == 'urladdlinkobject') {
+                    listchangespace.formactparam.action = '/' + mysystem.urlparam['myadm'] + '/' + mysystem.urlparam['class'] + '/class/'+ listchangespace.formactparam.idclass.value +'/obj/'+ listchangespace.formactparam.idobjparentobj.value +'/';
+                }
+            }
+        }
+        if(listchangespace.formactparam.nameurl.value=='allclassfiltered' || listchangespace.formactparam.nameurl.value=='csvimp' || listchangespace.formactparam.nameurl.value=='urlmovemenuobj' || listchangespace.formactparam.nameurl.value=='urlremove' || listchangespace.formactparam.nameurl.value=='urladdlinkclass') {
+            if(listchangespace.formactparam.objects.value == '' && (listchangespace.formactparam.nameurl.value!='urladdlinkclass')) {
+                alert('no selected objects');
+                return false;
+            }
+            if((listchangespace.formactparam.nameurl.value!='allclassfiltered' && listchangespace.formactparam.nameurl.value!='csvimp') && !confirm('ok?')) {
+                return false;
+            }
+        }
+        
+        if(listchangespace.formactparam.nameurl.value == 'csvexp') {
+            $('#block_datafile').show();
+            $(listchangespace.formactparam.submitaction).show();
+            return false;
+        }
+
+        listchangespace.formactparam.submit();
+        return false;
+    }
+);
+
+function linkclick(href) {
+    $(listchangespace.formactparam).attr('action', href);
+    listchangespace.formactparam.objects.value = listchangespace.elmen.objectsidarr.join(',');
+    listchangespace.formactparam.objectsno.value = listchangespace.elmen.objectsidarrno.join(',');
+    listchangespace.formactparam.submit();
+}
+
+$('#pagination').find('a').click(function() {
+    linkclick(this.href);
+    return false;
+});
+
+
+
+</script>
+
+</div>
+
+{% endblock %}
