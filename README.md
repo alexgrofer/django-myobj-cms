@@ -1,3 +1,6 @@
+http://alexgro.github.com/django-myobj-cms/
+================
+
 django-myobj-cms
 ================
 
@@ -12,7 +15,7 @@ from myobj import conf as MYCONF
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
-```
+```python
 urlpatterns = patterns('',
     (r'^' + MYCONF.NAVENTRY, include(MYCONF.PROJECT_NAME + '.myobj.urls')), # /ru/1 or /1, '1' - obj nav
     (r'^admin/myobj/', include(MYCONF.PROJECT_NAME + '.myobj.urls')),
